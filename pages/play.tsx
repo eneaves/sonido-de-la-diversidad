@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import CountrySelector from '@/app/components/CountrySelector';
+import React, { useState, useEffect } from "react";
+import Link from "next/link"; // Importa Link de Next.js
+import axios from "axios";
 
 interface Song {
   item: {
@@ -26,62 +26,73 @@ interface PlayProps {
 const Play = ({ access_token }: PlayProps) => {
   const [song, setSong] = useState<Song | null>(null);
   const [artistImage, setArtistImage] = useState<string | null>(null);
-  const [artistDescription, setArtistDescription] = useState<string | null>(null);
+  const [artistDescription, setArtistDescription] = useState<string | null>(
+    null
+  );
   const [isLiked, setIsLiked] = useState(false); // Estado del botón de Like
 
   useEffect(() => {
     const fetchSong = async () => {
       try {
-        const response = await axios.get('https://api.spotify.com/v1/me/player/currently-playing', {
-          headers: {
-            Authorization: `Bearer ${access_token}`,
-          },
-        });
+        const response = await axios.get(
+          "https://api.spotify.com/v1/me/player/currently-playing",
+          {
+            headers: {
+              Authorization: `Bearer ${access_token}`,
+            },
+          }
+        );
         const songData = response.data;
         setSong(songData);
 
         if (songData && songData.item && songData.item.artists.length > 0) {
           const artistId = songData.item.artists[0].id;
-          const artistResponse = await axios.get(`https://api.spotify.com/v1/artists/${artistId}`, {
-            headers: {
-              Authorization: `Bearer ${access_token}`,
-            },
-          });
+          const artistResponse = await axios.get(
+            `https://api.spotify.com/v1/artists/${artistId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${access_token}`,
+              },
+            }
+          );
           const artistData: Artist = artistResponse.data;
           setArtistImage(artistData.images[0]?.url || null);
           setArtistDescription(`
-            Géneros: ${artistData.genres.join(', ')}. 
+            Géneros: ${artistData.genres.join(", ")}. 
             Popularidad: ${artistData.popularity}. 
             Seguidores: ${artistData.followers.total.toLocaleString()}.
           `);
         }
       } catch (error) {
-        console.error('Error fetching currently playing song or artist:', error);
+        console.error(
+          "Error fetching currently playing song or artist:",
+          error
+        );
       }
     };
 
     fetchSong();
   }, [access_token]);
 
+  // Función para manejar el Like y enviar la información al backend
   const handleLike = async () => {
-    setIsLiked(!isLiked); // Cambia el estado del botón de "Like"
-
+    setIsLiked(!isLiked); // Cambia el estado de "Like"
     try {
-      await axios.post('http://localhost:3001/api/like', { // Supón que tu backend está en localhost
+      await axios.post("http://localhost:3001/api/like", {
         songName: song?.item.name,
         artistName: song?.item.artists[0].name,
         isLiked: !isLiked,
       });
-      console.log('Like status sent to backend');
+      console.log("Like status sent to backend");
     } catch (error) {
-      console.error('Error sending like status to backend:', error);
+      console.error("Error sending like status to backend:", error);
     }
   };
 
   const playSong = async () => {
     try {
       await axios.put(
-        'https://api.spotify.com/v1/me/player/play',
+        "https://api.spotify.com/v1/me/player/play",
         {},
         {
           headers: {
@@ -90,12 +101,18 @@ const Play = ({ access_token }: PlayProps) => {
         }
       );
     } catch (error) {
-      console.error('Error playing the song:', error);
+      console.error("Error playing the song:", error);
     }
   };
 
   return (
     <div style={styles.container}>
+      {/* Header con enlace a la página de búsqueda */}
+      <header style={styles.header}>
+        <Link href="/search">
+          <div style={styles.headerLink}>Ir a búsqueda de canciones</div>
+        </Link>
+      </header>
 
       {song ? (
         <div style={styles.songArtistContainer}>
@@ -107,28 +124,25 @@ const Play = ({ access_token }: PlayProps) => {
               style={styles.albumImage}
             />
             <h1 style={styles.songTitle}>{song.item.name}</h1>
-            <button onClick={playSong} style={styles.playButton}>PLAY</button>
-
+            <button onClick={playSong} style={styles.playButton}>
+              PLAY
+            </button>
             {/* Botón de Like */}
             <button
               onClick={handleLike}
               style={{
                 ...styles.likeButton,
-                backgroundColor: isLiked ? '#ff4e50' : '#ccc', // Cambia el color si está "liked"
+                backgroundColor: isLiked ? "#ff4e50" : "#ccc", // Cambia el color si está "liked"
               }}
             >
-              {isLiked ? 'Unlike' : 'Like'}
+              {isLiked ? "Unlike" : "Like"}
             </button>
           </div>
 
           {/* Imagen y descripción del artista */}
           <div style={styles.artistContainer}>
             {artistImage && (
-              <img
-                src={artistImage}
-                alt="Artist"
-                style={styles.artistImage}
-              />
+              <img src={artistImage} alt="Artist" style={styles.artistImage} />
             )}
             {artistDescription && (
               <div style={styles.artistDescriptionContainer}>
@@ -153,111 +167,115 @@ export async function getServerSideProps(context: any) {
 // Estilos
 const styles: { [key: string]: React.CSSProperties } = {
   container: {
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-    height: '100vh',
-    padding: '0 10%',
-    backgroundColor: '#3c1e04',
-    background: 'linear-gradient(to right, #3c1e04, #b3571f)', // Fondo degradado
-    color: '#fff',
-    textAlign: 'center' as 'center',
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
+    height: "100vh",
+    padding: "0 10%",
+    backgroundColor: "#3c1e04",
+    background: "linear-gradient(to right, #3c1e04, #b3571f)", // Fondo degradado
+    color: "#fff",
+    textAlign: "center" as "center",
     fontFamily: "'Play', sans-serif",
   },
-  searchContainer: {
-    display: 'flex',
-    alignItems: 'center',
-    marginBottom: '20px', // Añadimos margen inferior para separación
+  header: {
+    width: "100%",
+    padding: "10px 0",
+    backgroundColor: "#1f1f1f",
+    textAlign: "center",
+    position: "fixed",
+    top: 0,
+    left: 0,
+    zIndex: 1000,
+    boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)", // Agrega sombra al header
   },
-  searchButton: {
-    padding: '10px 20px',
-    fontSize: '1rem',
-    marginLeft: '10px',
-    background: 'linear-gradient(to right, #f9d423, #ff4e50)',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '10px',
-    cursor: 'pointer',
-    boxShadow: '0px 5px 10px rgba(0, 0, 0, 0.2)',
-    transition: 'background-color 0.3s',
+  headerLink: {
+    color: "#ffe0b5",
+    fontSize: "1.2rem",
+    textDecoration: "none",
+    transition: "color 0.3s", // Transición para hover
+  },
+  headerLinkHover: {
+    color: "#ff4e50", // Color de hover
   },
   songArtistContainer: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: '100%',
-    gap: '50px', // Controlamos el espacio entre las tarjetas con gap
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    width: "100%",
+    gap: "50px", // Controlamos el espacio entre las tarjetas con gap
+    marginTop: "100px", // Ajusta la separación para que no se solape con el header
   },
   albumContainer: {
-    textAlign: 'center' as 'center',
+    textAlign: "center" as "center",
   },
   albumImage: {
-    width: '350px',
-    height: '350px',
-    borderRadius: '20px',
-    boxShadow: '0px 10px 30px rgba(0, 0, 0, 0.5)',
+    width: "350px",
+    height: "350px",
+    borderRadius: "20px",
+    boxShadow: "0px 10px 30px rgba(0, 0, 0, 0.5)",
   },
   songTitle: {
-    fontSize: '3rem',
-    fontWeight: 'bold',
-    marginTop: '20px',
-    marginBottom: '10px',
+    fontSize: "3rem",
+    fontWeight: "bold",
+    marginTop: "20px",
+    marginBottom: "10px",
   },
   playButton: {
-    padding: '15px 40px',
-    fontSize: '1.5rem',
-    background: 'linear-gradient(to right, #f9d423, #ff4e50)',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '50px',
-    cursor: 'pointer',
-    boxShadow: '0px 5px 15px rgba(0, 0, 0, 0.2)',
-    marginTop: '20px',
-    transition: 'transform 0.2s',
+    padding: "15px 40px",
+    fontSize: "1.5rem",
+    background: "linear-gradient(to right, #f9d423, #ff4e50)", // Botón con degradado
+    color: "#fff",
+    border: "none",
+    borderRadius: "50px",
+    cursor: "pointer",
+    boxShadow: "0px 5px 15px rgba(0, 0, 0, 0.2)",
+    marginTop: "20px",
+    transition: "transform 0.2s",
   },
   likeButton: {
-    padding: '10px 20px',
-    fontSize: '1.2rem',
-    background: '#ccc',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '50px',
-    cursor: 'pointer',
-    marginTop: '15px',
-    transition: 'background-color 0.3s',
+    padding: "10px 20px",
+    fontSize: "1.2rem",
+    background: "#ccc",
+    color: "#fff",
+    border: "none",
+    borderRadius: "50px",
+    cursor: "pointer",
+    marginTop: "15px",
+    transition: "background-color 0.3s",
   },
   artistContainer: {
-    textAlign: 'center' as 'center',
-    maxWidth: '300px',
-    backgroundColor: '#fff',
-    borderRadius: '10px',
-    padding: '10px',
-    boxShadow: '0px 5px 15px rgba(0, 0, 0, 0.2)',
+    textAlign: "center" as "center",
+    maxWidth: "300px",
+    backgroundColor: "#fff",
+    borderRadius: "10px",
+    padding: "10px",
+    boxShadow: "0px 5px 15px rgba(0, 0, 0, 0.2)",
   },
   artistImage: {
-    width: '100%',
-    borderRadius: '10px',
-    marginBottom: '10px',
+    width: "100%",
+    borderRadius: "10px",
+    marginBottom: "10px",
   },
   artistName: {
-    fontSize: '2rem',
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: '10px',
+    fontSize: "2rem",
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: "10px",
   },
   artistDescriptionContainer: {
-    textAlign: 'left' as 'left',
-    color: '#333',
-    fontSize: '1.2rem',
+    textAlign: "left" as "left",
+    color: "#333",
+    fontSize: "1.2rem",
   },
   artistDescription: {
-    margin: '0',
-    padding: '0',
+    margin: "0",
+    padding: "0",
   },
   noSongText: {
-    fontSize: '1.5rem',
-    color: '#fff',
+    fontSize: "1.5rem",
+    color: "#fff",
   },
 };
 

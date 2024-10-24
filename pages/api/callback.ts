@@ -33,7 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { access_token, refresh_token } = response.data;
 
     // Redirige a la pantalla de reproducción pasando ambos tokens en la URL
-    res.redirect(`/play?access_token=${access_token}&refresh_token=${refresh_token}`);
+    res.redirect(`/search?access_token=${access_token}&refresh_token=${refresh_token}`);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Authentication failed' });

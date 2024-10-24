@@ -5,12 +5,15 @@ interface Country {
   name: string;
 }
 
-const CountrySelector = () => {
+interface CountrySelectorProps {
+  onCountrySelect: (countryCode: string | null) => void;
+}
+
+const CountrySelector = ({ onCountrySelect }: CountrySelectorProps) => {
   const [countries, setCountries] = useState<Country[]>([]);
   const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
 
   useEffect(() => {
-    // Mantén tus países originales
     const fetchedCountries = [
       { code: 'US', name: 'United States' },
       { code: 'MX', name: 'Mexico' },
@@ -25,6 +28,7 @@ const CountrySelector = () => {
     const countryCode = event.target.value;
     const selected = countries.find((country) => country.code === countryCode) || null;
     setSelectedCountry(selected);
+    onCountrySelect(selected ? selected.code : null); // Pasamos solo el código del país
   };
 
   return (
@@ -37,15 +41,9 @@ const CountrySelector = () => {
           </option>
         ))}
       </select>
-
-      {/* Mostrar el país seleccionado */}
-      {selectedCountry && (
-        <p>
-          You selected: {selectedCountry.name}
-        </p>
-      )}
     </div>
   );
 };
+
 
 export default CountrySelector;
