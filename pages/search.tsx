@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/router";
+import CountrySelector from "../app/components/CountrySelector"; // Asegúrate de que la ruta es correcta
 
 interface Song {
   name: string;
@@ -12,6 +13,8 @@ interface Song {
 }
 
 interface Artist {
+  id: string;
+  name: string;
   images: { url: string }[];
   genres: string[];
   popularity: number;
@@ -24,7 +27,7 @@ const SearchSong = () => {
   const [song, setSong] = useState<Song | null>(null);
   const [artistImage, setArtistImage] = useState<string | null>(null);
   const [artistDescription, setArtistDescription] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [isLiked, setIsLiked] = useState(false); // Estado del botón de Like
 
   const router = useRouter();
@@ -45,44 +48,65 @@ const SearchSong = () => {
     }
   }, [router.isReady, router.query]);
 
+  // Función para buscar un artista del país seleccionado y reproducir una canción aleatoria
   const handleSearch = async () => {
-    if (!searchQuery || !accessToken) {
-      console.error("No hay query de búsqueda o el access token está vacío.");
+    if (!selectedCountry || !accessToken) {
+      console.error("No hay país seleccionado o el access token está vacío.");
       return;
     }
 
     try {
-      const response = await axios.get(`https://api.spotify.com/v1/search`, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-        params: {
-          q: searchQuery,
-          type: "track",
-          limit: 1,
-        },
-      });
-
-      const songData = response.data.tracks.items[0];
-      setSong(songData);
-
-      if (songData && songData.artists.length > 0) {
-        const artistId = songData.artists[0].id;
-        const artistResponse = await axios.get(`https://api.spotify.com/v1/artists/${artistId}`, {
+      // Realiza la búsqueda de artistas basados en el país seleccionado
+      const artistResponse = await axios.get(
+        `https://api.spotify.com/v1/search?q=tag:origin:${selectedCountry}&type=artist&limit=50`,
+        {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
-        });
-        const artistData: Artist = artistResponse.data;
-        setArtistImage(artistData.images[0]?.url || null);
-        setArtistDescription(`
-          Géneros: ${artistData.genres.join(", ")}. 
-          Popularidad: ${artistData.popularity}. 
-          Seguidores: ${artistData.followers.total.toLocaleString()}.
-        `);
+        }
+      );
+
+      const artists = artistResponse.data.artists.items;
+
+      if (artists.length === 0) {
+        console.error("No se encontraron artistas para el país seleccionado.");
+        return;
       }
+
+      // Selecciona un artista aleatorio
+      const randomArtist = artists[Math.floor(Math.random() * artists.length)];
+
+      // Ahora busca las canciones del artista seleccionado
+      const topTracksResponse = await axios.get(
+        `https://api.spotify.com/v1/artists/${randomArtist.id}/top-tracks?market=${selectedCountry}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      const tracks = topTracksResponse.data.tracks;
+
+      if (tracks.length === 0) {
+        console.error("No se encontraron canciones para el artista seleccionado.");
+        return;
+      }
+
+      // Selecciona una canción aleatoria
+      const randomTrack = tracks[Math.floor(Math.random() * tracks.length)];
+
+      setSong(randomTrack);
+
+      // Actualiza la información del artista y la descripción
+      setArtistImage(randomArtist.images[0]?.url || null);
+      setArtistDescription(`
+        Géneros: ${randomArtist.genres.join(", ")}. 
+        Popularidad: ${randomArtist.popularity}. 
+        Seguidores: ${randomArtist.followers.total.toLocaleString()}.
+      `);
     } catch (error) {
-      console.error("Error searching for song:", error);
+      console.error("Error fetching artists or tracks:", error);
     }
   };
 
@@ -126,14 +150,8 @@ const SearchSong = () => {
   return (
     <div style={styles.container}>
       <header style={styles.header}>
-        <h1 style={styles.title}>Buscar Canción en Spotify</h1>
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Escribe el nombre de la canción"
-          style={styles.input}
-        />
+        <h1 style={styles.title}>Buscar Canción por País en Spotify</h1>
+        <CountrySelector onCountrySelect={(countryCode) => setSelectedCountry(countryCode)} />
         <button onClick={handleSearch} style={styles.searchButton}>
           Buscar
         </button>
@@ -205,13 +223,6 @@ const styles: { [key: string]: React.CSSProperties } = {
   title: {
     fontSize: "2rem",
     fontWeight: "bold",
-  },
-  input: {
-    padding: "10px",
-    fontSize: "1rem",
-    borderRadius: "8px",
-    border: "none",
-    marginRight: "10px",
   },
   searchButton: {
     padding: "10px 20px",

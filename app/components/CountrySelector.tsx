@@ -20,6 +20,21 @@ const CountrySelector = ({ onCountrySelect }: CountrySelectorProps) => {
       { code: 'GB', name: 'United Kingdom' },
       { code: 'FR', name: 'France' },
       { code: 'BR', name: 'Brazil' },
+      { code: 'KR', name: 'South Korea' }, 
+      { code: 'JP', name: 'Japan' }, 
+      { code: 'IN', name: 'India' }, 
+      { code: 'NG', name: 'Nigeria' }, 
+      { code: 'GH', name: 'Ghana' }, 
+      { code: 'ZA', name: 'South Africa' },
+      { code: 'SE', name: 'Sweden' }, 
+      { code: 'DE', name: 'Germany' }, 
+      { code: 'IT', name: 'Italy' }, 
+      { code: 'RU', name: 'Russia' }, 
+      { code: 'CN', name: 'China' }, 
+      { code: 'TR', name: 'Turkey' }, 
+      { code: 'AU', name: 'Australia' }, 
+      { code: 'CA', name: 'Canada' }, 
+      { code: 'EG', name: 'Egypt' },
     ];
     setCountries(fetchedCountries);
   }, []);
