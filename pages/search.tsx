@@ -54,61 +54,123 @@ const SearchSong = () => {
       console.error("No hay país seleccionado o el access token está vacío.");
       return;
     }
-
+  
+    let genreSeeds: string[] = [];
+  
+    // Definir algunos géneros representativos para países específicos
+    switch (selectedCountry) {
+      case 'US':
+        genreSeeds = ['hip-hop', 'country', 'rock', 'pop', 'r&b'];
+        break;
+      case 'MX':
+        genreSeeds = ['regional mexican', 'ranchera', 'norteño', 'banda', 'mariachi'];
+        break;
+      case 'GB':
+        genreSeeds = ['british rock', 'pop', 'electronic', 'grime', 'indie'];
+        break;
+      case 'FR':
+        genreSeeds = ['french pop', 'chanson', 'electro', 'hip-hop francais', 'french indie'];
+        break;
+      case 'BR':
+        genreSeeds = ['samba', 'bossa nova', 'sertanejo', 'funk carioca', 'tropicalia'];
+        break;
+      case 'KR':
+        genreSeeds = ['k-pop', 'k-hip-hop', 'k-rock', 'k-r&b', 'trot'];
+        break;
+      case 'JP':
+        genreSeeds = ['j-pop', 'enka', 'j-rock', 'anime', 'city pop'];
+        break;
+      case 'IN':
+        genreSeeds = ['bollywood', 'bhangra', 'indian classical', 'indian pop', 'punjabi'];
+        break;
+      case 'NG':
+        genreSeeds = ['afrobeat', 'afropop', 'highlife', 'naija hip hop', 'fuji'];
+        break;
+      case 'GH':
+        genreSeeds = ['hiplife', 'azonto', 'afrobeat', 'highlife', 'gospel ghana'];
+        break;
+      case 'ZA':
+        genreSeeds = ['afrohouse', 'kwaito', 'gqom', 'mbube', 'maskandi'];
+        break;
+      case 'SE':
+        genreSeeds = ['swedish pop', 'swedish hip hop', 'electropop', 'folk', 'metal'];
+        break;
+      case 'DE':
+        genreSeeds = ['german pop', 'schlager', 'techno', 'krautrock', 'german hip hop'];
+        break;
+      case 'IT':
+        genreSeeds = ['italian pop', 'italo disco', 'classical', 'cantautori', 'opera'];
+        break;
+      case 'RU':
+        genreSeeds = ['russian pop', 'russian hip hop', 'russian rock', 'folk', 'russian classical'];
+        break;
+      case 'CN':
+        genreSeeds = ['c-pop', 'mandopop', 'cantopop', 'chinese hip hop', 'folk chinese'];
+        break;
+      case 'TR':
+        genreSeeds = ['turkish pop', 'arabesk', 'anatolian rock', 'turkish classical', 'turkish folk'];
+        break;
+      case 'AU':
+        genreSeeds = ['australian indie', 'australian hip hop', 'folk', 'pop', 'rock'];
+        break;
+      case 'CA':
+        genreSeeds = ['canadian pop', 'indie', 'folk', 'hip-hop', 'country'];
+        break;
+      case 'EG':
+        genreSeeds = ['egyptian pop', 'shaabi', 'arabic classical', 'mahraganat', 'arabic hip hop'];
+        break;
+      default:
+        genreSeeds = ['pop'];
+        break;
+    }
+  
     try {
-      // Realiza la búsqueda de artistas basados en el país seleccionado
-      const artistResponse = await axios.get(
-        `https://api.spotify.com/v1/search?q=tag:origin:${selectedCountry}&type=artist&limit=50`,
+      // Usar el endpoint de recomendaciones con los géneros del país
+      const recommendationsResponse = await axios.get(
+        `https://api.spotify.com/v1/recommendations?market=${selectedCountry}&seed_genres=${genreSeeds.join(',')}&limit=10`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
         }
       );
-
-      const artists = artistResponse.data.artists.items;
-
-      if (artists.length === 0) {
-        console.error("No se encontraron artistas para el país seleccionado.");
-        return;
-      }
-
-      // Selecciona un artista aleatorio
-      const randomArtist = artists[Math.floor(Math.random() * artists.length)];
-
-      // Ahora busca las canciones del artista seleccionado
-      const topTracksResponse = await axios.get(
-        `https://api.spotify.com/v1/artists/${randomArtist.id}/top-tracks?market=${selectedCountry}`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
-
-      const tracks = topTracksResponse.data.tracks;
-
+  
+      const tracks = recommendationsResponse.data.tracks;
+  
       if (tracks.length === 0) {
-        console.error("No se encontraron canciones para el artista seleccionado.");
+        console.error("No se encontraron recomendaciones para el país seleccionado.");
         return;
       }
-
-      // Selecciona una canción aleatoria
+  
+      // Selecciona una canción aleatoria de la lista recomendada
       const randomTrack = tracks[Math.floor(Math.random() * tracks.length)];
-
+  
+      // Actualiza la información de la canción
       setSong(randomTrack);
-
+  
       // Actualiza la información del artista y la descripción
-      setArtistImage(randomArtist.images[0]?.url || null);
+      const artist = randomTrack.artists[0];
+      const artistResponse = await axios.get(
+        `https://api.spotify.com/v1/artists/${artist.id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+  
+      const artistData = artistResponse.data;
+      setArtistImage(artistData.images[0]?.url || null);
       setArtistDescription(`
-        Géneros: ${randomArtist.genres.join(", ")}. 
-        Popularidad: ${randomArtist.popularity}. 
-        Seguidores: ${randomArtist.followers.total.toLocaleString()}.
+        Géneros: ${artistData.genres.join(", ")}. 
+        Popularidad: ${artistData.popularity}. 
+        Seguidores: ${artistData.followers.total.toLocaleString()}.
       `);
     } catch (error) {
-      console.error("Error fetching artists or tracks:", error);
+      console.error("Error fetching recommendations or artist data:", error);
     }
   };
+  
 
   // Función para reproducir la canción
   const playSong = async () => {
