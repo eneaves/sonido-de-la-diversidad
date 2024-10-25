@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/router";
-import CountrySelector from "../app/components/CountrySelector"; // Asegúrate de que la ruta es correcta
+import CountrySelector from "../app/components/CountrySelector"; 
 
 interface Song {
   name: string;
-  uri: string; // Añadido para la funcionalidad de reproducción
+  uri: string; 
   artists: { name: string; id: string }[];
   album: {
     images: { url: string }[];
@@ -28,7 +28,7 @@ const SearchSong = () => {
   const [artistImage, setArtistImage] = useState<string | null>(null);
   const [artistDescription, setArtistDescription] = useState<string | null>(null);
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
-  const [isLiked, setIsLiked] = useState(false); // Estado del botón de Like
+  const [isLiked, setIsLiked] = useState(false); 
 
   const router = useRouter();
 
@@ -56,6 +56,22 @@ const SearchSong = () => {
     }
   
     let genreSeeds: string[] = [];
+
+      // Lista de géneros soportados por la API de Spotify
+  const supportedGenres = [
+    "acoustic", "afrobeat", "alt-rock", "alternative", "ambient", "anime", "black-metal", "bluegrass", "blues", "bossanova",
+    "brazil", "breakbeat", "british", "cantopop", "chicago-house", "children", "chill", "classical", "club", "comedy", "country",
+    "dance", "dancehall", "death-metal", "deep-house", "detroit-techno", "disco", "disney", "drum-and-bass", "dub", "dubstep", "edm",
+    "electro", "electronic", "emo", "folk", "forro", "french", "funk", "garage", "german", "gospel", "goth", "grindcore", "groove", 
+    "grunge", "guitar", "happy", "hard-rock", "hardcore", "hardstyle", "heavy-metal", "hip-hop", "holidays", "honky-tonk", "house",
+    "idm", "indian", "indie", "indie-pop", "industrial", "iranian", "j-dance", "j-idol", "j-pop", "j-rock", "jazz", "k-pop", "kids",
+    "latin", "latino", "malay", "mandopop", "metal", "metal-misc", "metalcore", "minimal-techno", "movies", "mpb", "new-age", 
+    "new-release", "opera", "pagode", "party", "philippines-opm", "piano", "pop", "pop-film", "post-dubstep", "power-pop", 
+    "progressive-house", "psych-rock", "punk", "punk-rock", "r-n-b", "rainy-day", "reggae", "reggaeton", "road-trip", "rock", 
+    "rock-n-roll", "rockabilly", "romance", "sad", "salsa", "samba", "sertanejo", "show-tunes", "singer-songwriter", "ska", 
+    "sleep", "songwriter", "soul", "soundtracks", "spanish", "study", "summer", "swedish", "synth-pop", "tango", "techno", 
+    "trance", "trip-hop", "turkish", "work-out", "world-music"
+  ];
   
     // Definir algunos géneros representativos para países específicos
     switch (selectedCountry) {
@@ -63,7 +79,7 @@ const SearchSong = () => {
         genreSeeds = ['hip-hop', 'country', 'rock', 'pop', 'r&b'];
         break;
       case 'MX':
-        genreSeeds = ['regional mexican', 'ranchera', 'norteño', 'banda', 'mariachi'];
+        genreSeeds = ['ranchera', 'norteño', 'banda', 'mariachi'];
         break;
       case 'GB':
         genreSeeds = ['british rock', 'pop', 'electronic', 'grime', 'indie'];
@@ -81,7 +97,7 @@ const SearchSong = () => {
         genreSeeds = ['j-pop', 'enka', 'j-rock', 'anime', 'city pop'];
         break;
       case 'IN':
-        genreSeeds = ['bollywood', 'bhangra', 'indian classical', 'indian pop', 'punjabi'];
+        genreSeeds = ['bhangra', 'indian classical', 'indian pop', 'punjabi'];
         break;
       case 'NG':
         genreSeeds = ['afrobeat', 'afropop', 'highlife', 'naija hip hop', 'fuji'];
@@ -124,23 +140,31 @@ const SearchSong = () => {
         break;
     }
   
-    try {
-      // Usar el endpoint de recomendaciones con los géneros del país
-      const recommendationsResponse = await axios.get(
-        `https://api.spotify.com/v1/recommendations?market=${selectedCountry}&seed_genres=${genreSeeds.join(',')}&limit=10`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
-  
-      const tracks = recommendationsResponse.data.tracks;
-  
-      if (tracks.length === 0) {
-        console.error("No se encontraron recomendaciones para el país seleccionado.");
-        return;
+  // Validar los géneros para que solo se envíen géneros soportados
+  genreSeeds = genreSeeds.filter(genre => supportedGenres.includes(genre));
+
+  if (genreSeeds.length === 0) {
+    console.warn("No hay géneros válidos para este país, utilizando géneros globales.");
+    genreSeeds = ['pop', 'rock', 'hip-hop']; // Géneros globales por defecto
+  }
+
+  try {
+    // Usar el endpoint de recomendaciones con los géneros del país
+    const recommendationsResponse = await axios.get(
+      `https://api.spotify.com/v1/recommendations?market=${selectedCountry}&seed_genres=${genreSeeds.join(',')}&limit=10`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
       }
+    );
+
+    const tracks = recommendationsResponse.data.tracks;
+
+    if (tracks.length === 0) {
+      console.error("No se encontraron recomendaciones para el país seleccionado.");
+      return;
+    }
   
       // Selecciona una canción aleatoria de la lista recomendada
       const randomTrack = tracks[Math.floor(Math.random() * tracks.length)];
