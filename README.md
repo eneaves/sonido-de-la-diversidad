@@ -1,36 +1,29 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🎶 Sonido de la Diversidad
 
-## Getting Started
+**Sonido de la Diversidad** es una aplicación web interactiva que celebra la diversidad de género, raza y región a través de experiencias musicales personalizadas. Utiliza la API de Spotify para conectar a los usuarios con canciones que reflejan sus identidades y elecciones.
 
-First, run the development server:
+## 🌍 ¿Qué hace esta app?
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Permite a los usuarios seleccionar:
+  - Identidad de género
+  - Raza / Etnia
+  - Región / País
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Genera una canción aleatoria basada en sus selecciones
+- Visualiza al artista y la portada del álbum
+- Proporciona una experiencia inmersiva y personalizada
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🛠️ Tecnologías Utilizadas
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Frontend:** React / Next.js / Tailwind CSS
+- **Integración musical:** Spotify Web API
+- **Visuales:** p5.js (opcional para visualización), Tone.js (si se usa para sonido)
+- **Estado / Datos:** React Context o Zustand (según tu implementación)
 
-## Learn More
+## 🚀 Cómo iniciar el proyecto
 
-To learn more about Next.js, take a look at the following resources:
+1. Clona el repositorio:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+   ```bash
+   git clone https://github.com/eneaves/sonido-de-la-diversidad.git
+   cd sonido-de-la-diversidad
